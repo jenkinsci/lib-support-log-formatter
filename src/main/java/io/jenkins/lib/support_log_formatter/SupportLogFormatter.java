@@ -52,7 +52,9 @@ public class SupportLogFormatter extends Formatter {
         }
     };
 
-    private final Object[] args = new Object[6];
+    protected String formatTime(LogRecord record) {
+        return threadLocalDateFormat.get().format(new Date(record.getMillis()));
+    }
 
     @Override
     @SuppressFBWarnings(
@@ -61,8 +63,7 @@ public class SupportLogFormatter extends Formatter {
     )
     public String format(LogRecord record) {
         StringBuilder builder = new StringBuilder();
-        SimpleDateFormat format = threadLocalDateFormat.get();
-        builder.append(format.format(new Date(record.getMillis())));
+        builder.append(formatTime(record));
         builder.append(" [id=").append(record.getThreadID()).append("]");
 
         builder.append("\t").append(record.getLevel().getName()).append("\t");
