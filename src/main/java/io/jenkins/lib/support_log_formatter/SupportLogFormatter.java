@@ -24,10 +24,6 @@
 
 package io.jenkins.lib.support_log_formatter;
 
-/***********************************************
- * DO NOT INCLUDE ANY NON JDK CLASSES IN HERE.
- * IT CAN DEADLOCK REMOTING - SEE JENKINS-32622
- ***********************************************/
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings; // Acceptable because RetentionPolicy.CLASS
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -39,10 +35,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
-/***********************************************
- * DO NOT INCLUDE ANY NON JDK CLASSES IN HERE.
- * IT CAN DEADLOCK REMOTING - SEE JENKINS-32622
- ***********************************************/
 
 /**
  * Format log files in a nicer format that is easier to read and search.
