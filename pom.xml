@@ -5,11 +5,11 @@
         <groupId>org.jenkins-ci</groupId>
         <artifactId>jenkins</artifactId>
         <version>1.51</version>
-        <relativePath/>
+        <relativePath />
     </parent>
     <groupId>io.jenkins.lib</groupId>
     <artifactId>support-log-formatter</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <name>Support Log Formatter</name>
     <description>Java logging formatter extracted to a standalone library.</description>
     <licenses>
@@ -22,7 +22,7 @@
         <connection>scm:git:git://github.com/jenkinsci/lib-support-log-formatter.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/lib-support-log-formatter.git</developerConnection>
         <url>https://github.com/jenkinsci/lib-support-log-formatter</url>
-        <tag>HEAD</tag>
+        <tag>support-log-formatter-1.0</tag>
     </scm>
     <repositories>
         <repository>
