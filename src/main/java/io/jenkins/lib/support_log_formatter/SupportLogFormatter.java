@@ -151,6 +151,7 @@ public class SupportLogFormatter extends Formatter {
         doPrintStackTrace(s, t, null, "", new HashSet<Throwable>());
         return s.toString();
     }
+    @SuppressFBWarnings(value = "INFORMATION_EXPOSURE_THROUGH_AN_ERROR_MESSAGE", justification = "TODO needs triage")
     private static void doPrintStackTrace(StringBuilder s, Throwable t, Throwable higher, String prefix, Set<Throwable> encountered) {
         if (!encountered.add(t)) {
             s.append("<cycle to ").append(t).append(">\n");
