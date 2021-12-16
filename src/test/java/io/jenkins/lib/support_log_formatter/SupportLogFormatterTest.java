@@ -24,10 +24,10 @@
 
 package io.jenkins.lib.support_log_formatter;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class SupportLogFormatterTest {
 
     // TODO test abbreviateClassName
 
-    private static void assertFormatting(@Nonnull String expected, @Nonnull Level level, @CheckForNull String message, @CheckForNull Throwable throwable) {
+    private static void assertFormatting(@NonNull String expected, @NonNull Level level, @CheckForNull String message, @CheckForNull Throwable throwable) {
         LogRecord lr = new LogRecord(level, message);
         if (throwable != null) {
             lr.setThrown(throwable);
