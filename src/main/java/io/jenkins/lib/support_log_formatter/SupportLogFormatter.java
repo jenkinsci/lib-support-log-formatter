@@ -43,14 +43,11 @@ import java.util.logging.LogRecord;
  */
 public class SupportLogFormatter extends Formatter {
 
-    private final static ThreadLocal<SimpleDateFormat> threadLocalDateFormat = new ThreadLocal<SimpleDateFormat>() {
-        @Override
-        protected SimpleDateFormat initialValue() {
-            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ");
-            f.setTimeZone(TimeZone.getTimeZone("UTC"));
-            return f;
-        }
-    };
+    private final static ThreadLocal<SimpleDateFormat> threadLocalDateFormat = ThreadLocal.withInitial(() -> {
+        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ");
+        f.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return f;
+    });
 
     protected String formatTime(LogRecord record) {
         return threadLocalDateFormat.get().format(new Date(record.getMillis()));
@@ -127,16 +124,16 @@ public class SupportLogFormatter extends Formatter {
         for (int i = 0; i < count; i++) {
             int previous = i > 0 ? indexes[i - 1] : -1;
             int available = indexes[i] - previous - 1;
-            int length = requiredSavings > 0 ? (available < 1) ? available : 1 : available;
-            requiredSavings -= (available - length);
+            int length = requiredSavings > 0 ? Math.min(available, 1) : available;
+            requiredSavings -= available - length;
             lengths[i] = length + 1;
         }
         lengths[count] = fqcnLength - indexes[count - 1];
         for (int i = 0; i <= count; i++) {
             if (i == 0) {
-                buf.append(fqcn.substring(0, lengths[i] - 1));
+                buf.append(fqcn, 0, lengths[i] - 1);
             } else {
-                buf.append(fqcn.substring(indexes[i - 1], indexes[i - 1] + lengths[i]));
+                buf.append(fqcn, indexes[i - 1], indexes[i - 1] + lengths[i]);
             }
         }
         return buf.toString();
@@ -148,7 +145,7 @@ public class SupportLogFormatter extends Formatter {
             return "No Exception details";
         }
         StringBuilder s = new StringBuilder();
-        doPrintStackTrace(s, t, null, "", new HashSet<Throwable>());
+        doPrintStackTrace(s, t, null, "", new HashSet<>());
         return s.toString();
     }
     @SuppressFBWarnings(value = "INFORMATION_EXPOSURE_THROUGH_AN_ERROR_MESSAGE", justification = "TODO needs triage")
@@ -161,7 +158,7 @@ public class SupportLogFormatter extends Formatter {
             if (!t.getClass().getMethod("printStackTrace", PrintWriter.class).equals(Throwable.class.getMethod("printStackTrace", PrintWriter.class))) {
                 StringWriter sw = new StringWriter();
                 t.printStackTrace(new PrintWriter(sw));
-                s.append(sw.toString());
+                s.append(sw);
                 return;
             }
         } catch (NoSuchMethodException x) {

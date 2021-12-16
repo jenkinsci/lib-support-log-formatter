@@ -24,12 +24,13 @@
 
 package io.jenkins.lib.support_log_formatter;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalToCompressingWhiteSpace;
+
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class SupportLogFormatterTest {
@@ -62,7 +63,7 @@ public class SupportLogFormatterTest {
         lr.setSourceClassName("some.pkg.Catcher");
         lr.setSourceMethodName("robust");
         lr.setMillis(0);
-        assertThat(new SupportLogFormatter().format(lr), equalToIgnoringWhiteSpace(expected));
+        assertThat(new SupportLogFormatter().format(lr), equalToCompressingWhiteSpace(expected));
     }
 
     private static class PhonyException extends Throwable {
