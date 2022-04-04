@@ -29,7 +29,6 @@
         <revision>1.2</revision>
         <changelist>-SNAPSHOT</changelist>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.level>8</java.level>
         <gitHubRepo>jenkinsci/lib-${project.artifactId}</gitHubRepo>
     </properties>
     <dependencies>
