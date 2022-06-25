@@ -29,6 +29,7 @@ import static org.hamcrest.Matchers.equalToCompressingWhiteSpace;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import org.junit.Test;
@@ -62,7 +63,7 @@ public class SupportLogFormatterTest {
         lr.setThreadID(999);
         lr.setSourceClassName("some.pkg.Catcher");
         lr.setSourceMethodName("robust");
-        lr.setMillis(0);
+        lr.setInstant(Instant.ofEpochMilli(0));
         assertThat(new SupportLogFormatter().format(lr), equalToCompressingWhiteSpace(expected));
     }
 
