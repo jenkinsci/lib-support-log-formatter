@@ -24,11 +24,13 @@
 
 package io.jenkins.lib.support_log_formatter;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings; // Acceptable because RetentionPolicy.CLASS
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -52,6 +54,52 @@ public class SupportLogFormatter extends Formatter {
     protected String formatTime(LogRecord record) {
         return threadLocalDateFormat.get().format(new Date(record.getMillis()));
     }
+    private static final char[] CRLF = new char[] { '\r', '\n' };
+
+    /**
+     * Transforms a log message string for use on the CLI.
+     * @param message the original log message
+     * @param indent how far to indent subsequent lines
+     * @return the transformed log message string
+     */
+    static String transformMessage(@NonNull String message, @NonNull String indent) {
+        if (DO_NOT_FORMAT_FOR_CLI) {
+            return message;
+        }
+        StringBuilder sb = new StringBuilder();
+        final char[] chars = message.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+
+            if (i < chars.length - 1 && Arrays.equals(CRLF, 0, 2, chars, i, i + 2)) {
+                // explicit line break indicator unless trailing newline
+                if (i < chars.length - CRLF.length) {
+                    sb.append(LINE_SEPARATOR).append(indent).append("[CRLF]").append(NEWLINE_INDICATOR);
+                } else {
+                    sb.append(LINE_SEPARATOR);
+                }
+                i += 1;
+                continue;
+            }
+            if (c == '\n' || c == '\r') {
+                // explicit line break indicator unless trailing newline
+                // TODO Should we even consider \r to be a line break on its own?
+                if (i < chars.length - 1) {
+                    sb.append(LINE_SEPARATOR).append(indent).append(c == '\n' ? "[LF]" : "[CR]").append(NEWLINE_INDICATOR);
+                } else {
+                    sb.append(c);
+                }
+                continue;
+            }
+            sb.append(c);
+        }
+        return sb.toString();
+    }
+
+    static /* quasi-final */ boolean DO_NOT_FORMAT_FOR_CLI = Boolean.getBoolean(SupportLogFormatter.class.getName() + ".DO_NOT_FORMAT_FOR_CLI");
+    static /* quasi-final */ String NEWLINE_INDICATOR = System.getProperty(SupportLogFormatter.class.getName() + ".NEWLINE_INDICATOR", "> ");
+
+    private static final String LINE_SEPARATOR = System.lineSeparator();
 
     @Override
     @SuppressFBWarnings(
@@ -86,7 +134,7 @@ public class SupportLogFormatter extends Formatter {
 
         String message = formatMessage(record);
         if (message != null) {
-            builder.append(": ").append(message);
+            builder.append(": ").append(transformMessage(message, ""));
         }
 
         builder.append("\n");
@@ -151,14 +199,14 @@ public class SupportLogFormatter extends Formatter {
     @SuppressFBWarnings(value = "INFORMATION_EXPOSURE_THROUGH_AN_ERROR_MESSAGE", justification = "TODO needs triage")
     private static void doPrintStackTrace(StringBuilder s, Throwable t, Throwable higher, String prefix, Set<Throwable> encountered) {
         if (!encountered.add(t)) {
-            s.append("<cycle to ").append(t).append(">\n");
+            s.append("<cycle to ").append(transformMessage(t.toString(), prefix)).append(">\n");
             return;
         }
         try {
             if (!t.getClass().getMethod("printStackTrace", PrintWriter.class).equals(Throwable.class.getMethod("printStackTrace", PrintWriter.class))) {
                 StringWriter sw = new StringWriter();
                 t.printStackTrace(new PrintWriter(sw));
-                s.append(sw);
+                s.append(transformMessage(sw.toString(), prefix));
                 return;
             }
         } catch (NoSuchMethodException x) {
@@ -175,9 +223,9 @@ public class SupportLogFormatter extends Formatter {
         if (lower != null) {
             s.append(prefix).append("Caused: ");
         }
-        String summary = t.toString();
+        String summary = transformMessage(t.toString(), "");
         if (lower != null) {
-            String suffix = ": " + lower;
+            String suffix = ": " + transformMessage(lower.toString(), prefix);
             if (summary.endsWith(suffix)) {
                 summary = summary.substring(0, summary.length() - suffix.length());
             }
@@ -199,7 +247,6 @@ public class SupportLogFormatter extends Formatter {
             s.append(prefix).append("\tat ").append(trace[i]).append(LINE_SEPARATOR);
         }
     }
-    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
     public static void printStackTrace(Throwable t, PrintWriter pw) {
         pw.println(printThrowable(t).trim());
     }
