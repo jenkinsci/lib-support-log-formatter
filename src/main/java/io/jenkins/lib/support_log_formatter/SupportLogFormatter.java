@@ -109,7 +109,7 @@ public class SupportLogFormatter extends Formatter {
     public String format(LogRecord record) {
         StringBuilder builder = new StringBuilder();
         builder.append(formatTime(record));
-        builder.append(" [id=").append(record.getThreadID()).append("]");
+        builder.append(" [id=").append(record.getLongThreadID()).append("]");
 
         builder.append("\t").append(record.getLevel().getName()).append("\t");
 
