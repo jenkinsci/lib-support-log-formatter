@@ -36,30 +36,36 @@ import java.io.PrintWriter;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class SupportLogFormatterTest {
+class SupportLogFormatterTest {
 
     @Test
-    public void smokes() {
+    void smokes() {
         assertFormatting("1970-01-01 00:00:00.000+0000 [id=999]\tINFO\tsome.pkg.Catcher#robust: some message\n",
                 Level.INFO, "some message", null);
-        assertFormatting("1970-01-01 00:00:00.000+0000 [id=999]\tWARNING\tsome.pkg.Catcher#robust: failed to do stuff\n" +
-                        "PhonyException: oops\n" +
-                        "\tat some.other.pkg.Thrower.buggy(Thrower.java:123)\n" +
-                        "\tat some.pkg.Catcher.robust(Catcher.java:456)\n",
+        assertFormatting("""
+                        1970-01-01 00:00:00.000+0000 [id=999]    WARNING    some.pkg.Catcher#robust: failed to do stuff
+                        PhonyException: oops
+                            at some.other.pkg.Thrower.buggy(Thrower.java:123)
+                            at some.pkg.Catcher.robust(Catcher.java:456)
+                        """,
                 Level.WARNING, "failed to do stuff", new PhonyException("oops", null));
-        assertFormatting("1970-01-01 00:00:00.000+0000 [id=999]\tWARNING\tsome.pkg.Catcher#robust\n" +
-                        "PhonyException: oops\n" +
-                        "\tat some.other.pkg.Thrower.buggy(Thrower.java:123)\n" +
-                        "\tat some.pkg.Catcher.robust(Catcher.java:456)\n",
+        assertFormatting("""
+                        1970-01-01 00:00:00.000+0000 [id=999]    WARNING    some.pkg.Catcher#robust
+                        PhonyException: oops
+                            at some.other.pkg.Thrower.buggy(Thrower.java:123)
+                            at some.pkg.Catcher.robust(Catcher.java:456)
+                        """,
                 Level.WARNING, null, new PhonyException("oops", null));
-        assertFormatting("1970-01-01 00:00:00.000+0000 [id=999]\tWARNING\tsome.pkg.Catcher#robust: failed to do stuff\n" +
-                        "PhonyException2: lol\n" +
-                        "\tat elsewhere.Classname.deeper(Classname.java:321)\n" +
-                        "Caused: PhonyException: oops\n" +
-                        "\tat some.other.pkg.Thrower.buggy(Thrower.java:123)\n" +
-                        "\tat some.pkg.Catcher.robust(Catcher.java:456)\n",
+        assertFormatting("""
+                        1970-01-01 00:00:00.000+0000 [id=999]    WARNING    some.pkg.Catcher#robust: failed to do stuff
+                        PhonyException2: lol
+                            at elsewhere.Classname.deeper(Classname.java:321)
+                        Caused: PhonyException: oops
+                            at some.other.pkg.Thrower.buggy(Thrower.java:123)
+                            at some.pkg.Catcher.robust(Catcher.java:456)
+                        """,
                 Level.WARNING, "failed to do stuff", new PhonyException("oops", new PhonyException2("lol", null)));
         assertFormatting("1970-01-01 00:00:00.000+0000 [id=999]\tWARNING\tsome.pkg.Catcher#robust: failed to do stuff\n" +
                         "I\n" + currentPlatformLineSeparatorIndicator() + "> am\n" + currentPlatformLineSeparatorIndicator() + "> fancy\n" +
@@ -80,7 +86,7 @@ public class SupportLogFormatterTest {
     }
 
     @Test
-    public void testTransformBasics() {
+    void testTransformBasics() {
         assertThat(transformMessage("foo", ""), is("foo"));
         assertThat(transformMessage("foo", "    "), is("foo"));
         assertThat(transformMessage("foo\nbar", ""), is("foo" + System.lineSeparator() + "[LF]> bar"));
@@ -94,16 +100,23 @@ public class SupportLogFormatterTest {
     }
 
     @Test
-    public void testNewlinesForSecurity3424() {
-        assertFormatting("1970-01-01 00:00:00.000+0000 [id=999]\tWARNING\tsome.pkg.Catcher#robust: oh no\n" +
-                        "[LF]> 1970-01-01 00:00:00.000+0000 [id=999]\tSEVERE\tfake.Class#foo: injected\n" +
-                        "Also:   SuppressedException: I\n\t[LF]> am\n\t[LF]> suppressed\n" +
-                        "\t\tat suppressions.Suppressor.suppress(Suppressor.java:314)\n" +
-                        "PhonyException2: foo\n[LF]> \n[LF]> bar\n" +
-                        "\tat elsewhere.Classname.deeper(Classname.java:321)\n" +
-                        "Caused: PhonyException: Where is this?\n[LF]> \tat fake.Class.method(Class.java:111)\n" +
-                        "\tat some.other.pkg.Thrower.buggy(Thrower.java:123)\n" +
-                        "\tat some.pkg.Catcher.robust(Catcher.java:456)\n",
+    void testNewlinesForSecurity3424() {
+        assertFormatting("""
+                        1970-01-01 00:00:00.000+0000 [id=999]    WARNING    some.pkg.Catcher#robust: oh no
+                        [LF]> 1970-01-01 00:00:00.000+0000 [id=999]    SEVERE    fake.Class#foo: injected
+                        Also:   SuppressedException: I
+                            [LF]> am
+                            [LF]> suppressed
+                                at suppressions.Suppressor.suppress(Suppressor.java:314)
+                        PhonyException2: foo
+                        [LF]>
+                        [LF]> bar
+                            at elsewhere.Classname.deeper(Classname.java:321)
+                        Caused: PhonyException: Where is this?
+                        [LF]>     at fake.Class.method(Class.java:111)
+                            at some.other.pkg.Thrower.buggy(Thrower.java:123)
+                            at some.pkg.Catcher.robust(Catcher.java:456)
+                        """,
                 Level.WARNING, "oh no\n1970-01-01 00:00:00.000+0000 [id=999]\tSEVERE\tfake.Class#foo: injected",
                 new PhonyException("Where is this?\n\tat fake.Class.method(Class.java:111)",
                         new PhonyException2("foo\n\nbar", null,
@@ -118,7 +131,7 @@ public class SupportLogFormatterTest {
             lr.setThrown(throwable);
         }
         // unused: lr.setLoggerName("some.pkg.Catcher");
-        lr.setThreadID(999);
+        lr.setLongThreadID(999);
         lr.setSourceClassName("some.pkg.Catcher");
         lr.setSourceMethodName("robust");
         lr.setInstant(Instant.ofEpochMilli(0));
